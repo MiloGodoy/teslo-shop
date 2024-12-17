@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "npm run prisma:deploy && next build",
-    "start": "next start",
-    "lint": "next lint",
-    "prisma:deploy": "npx prisma migrate deploy && prisma generate",
-    "seed": "ts-node src/seed/seed-database.ts"
-  },
+  "dev": "next dev",
+  "build": "npx prisma migrate deploy && npx prisma generate && next build",
+  "start": "next start",
+  "lint": "next lint",
+  "prisma:deploy": "npx prisma migrate deploy && npx prisma generate",
+  "seed": "ts-node src/seed/seed-database.ts"
+},
   "dependencies": {
     "@paypal/react-paypal-js": "^8.7.0",
     "@prisma/client": "^6.0.1",
