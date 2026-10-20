@@ -1,104 +1,30 @@
-
+import { loadEnvConfig } from '@next/env';
+import { PrismaClient } from '@prisma/client';
 import { initialData } from './seed';
-import prisma from '../lib/prisma';
 import { countries } from './seed.countries';
 
-
-
+loadEnvConfig(process.cwd());
+const prisma = new PrismaClient();
 async function main() {
-  
-  // 1. Borrar registros previos
-  // await Promise.all( [
-  
-  await prisma.orderAddress.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-
-  await prisma.userAddress.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.country.deleteMany();
-
-  await prisma.productImage.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  // ]);
-  
-  const { categories, products, users } = initialData;
-
-  await prisma.user.createMany({
-    data: users
-  });
-
-  await prisma.country.createMany({
-    data: countries
-  })
-
-
-  //  Categorias
-  // {
-  //   name: 'Shirt'
-  // }
-  const categoriesData = categories.map( (name) => ({ name }));
-  
-  await prisma.category.createMany({
-    data: categoriesData
-  });
-
-  
-  const categoriesDB = await prisma.category.findMany();
-  
-  const categoriesMap = categoriesDB.reduce( (map, category) => {
-    map[ category.name.toLowerCase()] = category.id;
-    return map;
-  }, {} as Record<string, string>); //<string=shirt, string=categoryID>
-  
-  
-
-  // Productos
-
-  products.forEach( async(product) => {
-
-    const { type, images, ...rest } = product;
-
-    const dbProduct = await prisma.product.create({
-      data: {
-        ...rest,
-        categoryId: categoriesMap[type]
-      }
-    })
-
-
-    // Images
-    const imagesData = images.map( image => ({
-      url: image,
-      productId: dbProduct.id
-    }));
-
-    await prisma.productImage.createMany({
-      data: imagesData
+  const url = new URL(process.env.DATABASE_URL ?? '');
+  if (process.env.NODE_ENV === 'production' || !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+    throw new Error('Los productos de demostración solo se cargan en una base local.');
+  }
+  await prisma.country.createMany({ data: countries, skipDuplicates: true });
+  await prisma.category.createMany({ data: initialData.categories.map((name) => ({ name })), skipDuplicates: true });
+  const categories = await prisma.category.findMany();
+  for (const { type, images, ...product } of initialData.products) {
+    const category = categories.find((c) => c.name.toLowerCase() === type);
+    if (!category) throw new Error('Categoría faltante.');
+    await prisma.product.upsert({
+      where: { slug: product.slug }, update: {},
+      create: { ...product, categoryId: category.id,
+        ProductImage: { create: [...new Set(images)].map((url) => ({ url })) } },
     });
-
-  });
-
-
-
-
-
-  console.log( 'Seed ejecutado correctamente' );
+  }
+  console.log('Catálogo de demostración agregado. Se conservaron los datos existentes; no se crearon usuarios de prueba.');
 }
-
-
-
-
-
-
-
-
-
-( () => {
-
-  if ( process.env.NODE_ENV === 'production' ) return;
-
-
-  main();
-} )();
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : 'No se pudo cargar el catálogo.');
+  process.exitCode = 1;
+}).finally(() => prisma.$disconnect());

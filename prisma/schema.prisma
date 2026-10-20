@@ -35,6 +35,7 @@ model Product {
 model ProductImage {
   id        Int     @id @default(autoincrement())
   url       String
+  publicId  String?
   productId String
   product   Product @relation(fields: [productId], references: [id])
 }

@@ -1,4 +1,3 @@
-import * as bcryptjs from 'bcryptjs';
 
 
 
@@ -15,18 +14,10 @@ interface SeedProduct {
     gender: 'men'|'women'|'kid'|'unisex'
 }
 
-interface SeedUser {
-    email: string;
-    password: string;
-    name: string;
-    role: 'admin'| 'user'
-}
-
 type ValidSizes = 'XS'|'S'|'M'|'L'|'XL'|'XXL'|'XXXL';
 type ValidTypes = 'shirts'|'pants'|'hoodies'|'hats';
 
 interface SeedData {
-    users: SeedUser[];
     categories: string[];
     products: SeedProduct[];
 }
@@ -36,26 +27,8 @@ interface SeedData {
 
 export const initialData: SeedData = {
 
-    users: [
-        {
-            email: 'milogodoy@google.com',
-            name: 'Ramiro Godoy',
-            password: bcryptjs.hashSync('123456'),
-            role: 'admin'
-        },
-
-        {
-            email: 'melissa@google.com',
-            name: 'Melissa Flores',
-            password: bcryptjs.hashSync('123456'),
-            role: 'user'
-        },
-
-
-    ],
-
     categories: [
-        'Shirts', 'Pants', 'Hoodies', 'Hats' 
+        'Shirts', 'Pants', 'Hoodies', 'Hats'
     ],
     products: [
         {
@@ -76,7 +49,7 @@ export const initialData: SeedData = {
         {
             description: "The Men's Quilted Shirt Jacket features a uniquely fit, quilted design for warmth and mobility in cold weather seasons. With an overall street-smart aesthetic, the jacket features subtle silicone injected Tesla logos below the back collar and on the right sleeve, as well as custom matte metal zipper pulls. Made from 87% nylon and 13% polyurethane.",
             images: [
-                '1740507-00-A_0_2000.jpg',
+                '1740507-00-A_1.jpg',
                 '1740507-00-A_1.jpg',
             ],
             inStock: 5,
@@ -88,7 +61,7 @@ export const initialData: SeedData = {
             title: "Men's Quilted Shirt Jacket",
             gender: 'men'
         },
-        
+
         {
             description: "Introducing the Tesla Raven Collection. The Men's Raven Lightweight Zip Up Bomber has a premium, modern silhouette made from a sustainable bamboo cotton blend for versatility in any season. The hoodie features subtle thermoplastic polyurethane Tesla logos on the left chest and below the back collar, a concealed chest pocket with custom matte zipper pulls and a french terry interior. Made from 70% bamboo and 30% cotton.",
             images: [
@@ -229,7 +202,7 @@ export const initialData: SeedData = {
             description: "Designed to celebrate Tesla's incredible performance mode, the Plaid Mode Tee features great fit, comfort and style. Made from 100% cotton, it's the next best thing to riding shotgun at the Nürburgring.",
             images: [
                 '1549268-00-A_0_2000.jpg',
-                '1549268-00-A_2.jpg',
+                '1549268-00-A_0_2000.jpg',
             ],
             inStock: 82,
             price: 35,
@@ -498,7 +471,7 @@ export const initialData: SeedData = {
         {
             description: "Introducing the Tesla Chill Collection. The Women's Chill Half Zip Cropped Hoodie has a premium, soft fleece exterior and cropped silhouette for comfort in everyday lifestyle. The hoodie features an elastic hem that gathers at the waist, subtle thermoplastic polyurethane Tesla logos along the hood and on the sleeve, a double layer single seam hood and a custom ring zipper pull. Made from 60% cotton and 40% recycled polyester.",
             images: [
-                '1740226-00-A_0_2000.jpg',
+                '1740226-00-A_1.jpg',
                 '1740226-00-A_1.jpg',
             ],
             inStock: 10,
@@ -573,8 +546,8 @@ export const initialData: SeedData = {
         {
             description: "Designed for style and comfort, the ultrasoft Women's T Logo Long Sleeve Scoop Neck Tee features a tonal 3D silicone-printed T logo on the left chest. Made of 50% Peruvian cotton and 50% Peruvian viscose.",
             images: [
-                '8765100-00-A_0_2000.jpg',
-                '8765100-00-A_1.jpg',
+                '/imgs/placeholder.jpg',
+                '/imgs/placeholder.jpg',
             ],
             inStock: 16,
             price: 40,
@@ -634,7 +607,7 @@ export const initialData: SeedData = {
             description: "Inspired by our popular home battery, the Tesla Powerwall Tee is made from 100% cotton and features the phrase 'Pure Energy' under our signature logo in the back. Designed for fit, comfort and style, the exclusive tee promotes sustainable energy in any",
             images: [
                 '9877040-00-A_0_2000.jpg',
-                '9877040-00-A_1.jpg',
+                '9877040-00-A_0_2000.jpg',
             ],
             inStock: 10,
             price: 130,
@@ -754,7 +727,7 @@ export const initialData: SeedData = {
             description: "The checkered tee is made from long grain, GMO free Peruvian cotton. Peru is the only country in the world where cotton is picked by hand on a large scale. The 4,500-year-old tradition prevents damage to the fiber during the picking process and removes the need to use chemicals to open the cotton plants before harvest. This environmentally friendly process results in cotton that is soft, strong, and lustrous – and the tee will get even softer with every wash.",
             images: [
                 '100042307_0_2000.jpg',
-                '100042307_alt_2000.jpg',
+                '100042307_alt.jpg',
             ],
             inStock: 10,
             price: 30,
@@ -769,7 +742,7 @@ export const initialData: SeedData = {
             description: "For the future space traveler with discerning taste, a soft, cotton onesie with snap closure bottom. Clear labeling provided in case of contact with a new spacefaring civilization. 100% Cotton. Made in Peru",
             images: [
                 '1473809-00-A_1_2000.jpg',
-                '1473809-00-A_alt.jpg',
+                '1473809-00-A_1_2000.jpg',
             ],
             inStock: 16,
             price: 25,

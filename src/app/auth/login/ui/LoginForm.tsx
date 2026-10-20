@@ -5,14 +5,14 @@ import { authenticate } from '@/actions/auth/login';
 import clsx from 'clsx';
 import Link from 'next/link'
 // import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react'
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useActionState, useEffect } from 'react'
+import { useFormStatus } from 'react-dom';
 import { IoInformationOutline } from 'react-icons/io5';
 
 export const LoginForm = () => {
 
     // const router = useRouter();
-    const [state, dispatch] = useFormState(authenticate, undefined);
+    const [state, dispatch] = useActionState(authenticate, undefined);
 
     useEffect(() => {
       if ( state === 'Success') {
@@ -28,7 +28,7 @@ export const LoginForm = () => {
         <label htmlFor="email">Correo electrónico</label>
         <input
           className="px-5 py-2 border bg-gray-200 rounded mb-5"
-          type="email" 
+          type="email"
           name="email"
         />
 
@@ -36,8 +36,8 @@ export const LoginForm = () => {
         <label htmlFor="email">Contraseña</label>
         <input
           className="px-5 py-2 border bg-gray-200 rounded mb-5"
-          type="password" 
-          name='password'  
+          type="password"
+          name='password'
         />
 
         <div
@@ -64,7 +64,7 @@ export const LoginForm = () => {
         </div>
 
         <Link
-          href="/auth/new-account" 
+          href="/auth/new-account"
           className="btn-secondary text-center">
           Crear una nueva cuenta
         </Link>
@@ -75,7 +75,7 @@ export const LoginForm = () => {
 
 function LoginButton() {
   const { pending } = useFormStatus();
- 
+
   return (
     <button
       type='submit'

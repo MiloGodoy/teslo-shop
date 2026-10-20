@@ -3,7 +3,6 @@ export interface User {
     name: string;
     email: string;
     emailVerfied?: Date | null;
-    password: string;
     role: string;
     image?: string | null;
 }

@@ -34,7 +34,7 @@ export const PlaceOrder = () => {
         size: product.size
       }))
 
-      console.log({address, productsToOrder})
+
 
       //! Server Action
       const resp = await placeOrder(productsToOrder, address);
@@ -103,7 +103,8 @@ export const PlaceOrder = () => {
 
               <button
                 // href="/orders/123"
-                onClick={onPlaceOrder} 
+                onClick={onPlaceOrder}
+                disabled={isPlacingOrder}
                 className={
                   clsx({
                     'btn-primary': !isPlacingOrder,

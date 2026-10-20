@@ -1,151 +1,54 @@
-"use server";
+'use server';
 
-import prisma from "@/lib/prisma";
-import { auth } from "@/auth.config";
-import type { Address, Size } from "@/interfaces";
+import prisma from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/authorization';
+import { addressSchema, orderItemsSchema } from '@/lib/validation';
+import { calculateTotals } from '@/utils/order-totals';
+import type { Address, Size } from '@/interfaces';
 
-interface ProductToOrder {
-  productId: string;
-  quantity: number;
-  size: Size;
-}
-
-export const placeOrder = async (
-  productIds: ProductToOrder[],
-  address: Address
-) => {
-  const session = await auth();
-  const userId = session?.user.id;
-
-  // Verificar sesión de usuario
-  if (!userId) {
-    return {
-      ok: false,
-      message: "No hay sesión de usuario",
-    };
-  }
-
-  // Obtener la información de los productos
-  const products = await prisma.product.findMany({
-    where: {
-      id: {
-        in: productIds.map((p) => p.productId),
-      },
-    },
-  });
-
-  // Calcular los montos
-  const itemsInOrder = productIds.reduce((count, p) => count + p.quantity, 0);
-
-  const { subTotal, tax, total } = productIds.reduce(
-    (totals, item) => {
-      const productQuantity = item.quantity;
-      const product = products.find((product) => product.id === item.productId);
-
-      if (!product) throw new Error(`${item.productId} no existe - 500`);
-
-      const subTotal = product.price * productQuantity;
-
-      totals.subTotal += subTotal;
-      totals.tax += subTotal * 0.15;
-      totals.total += subTotal * 1.15;
-
-      return totals;
-    },
-    { subTotal: 0, tax: 0, total: 0 }
-  );
-
-  // Crear la transacción de base de datos
+export async function placeOrder(productIds: { productId: string; quantity: number; size: Size }[], address: Address) {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false as const, message: 'Debes iniciar sesión.' };
+  const items = orderItemsSchema.safeParse(productIds);
+  const delivery = addressSchema.safeParse(address);
+  if (!items.success || !delivery.success) return { ok: false as const, message: 'Revisa los productos y la dirección.' };
   try {
-    const prismaTx = await prisma.$transaction(async (tx) => {
-      // 1. Actualizar el stock de los productos
-      const updatedProductsPromises = products.map((product) => {
-        const productQuantity = productIds
-          .filter((p) => p.productId === product.id)
-          .reduce((acc, item) => item.quantity + acc, 0);
-
-        if (productQuantity === 0) {
-          throw new Error(`${product.id} no tiene cantidad definida`);
-        }
-
-        return tx.product.update({
-          where: { id: product.id },
-          data: {
-            inStock: {
-              decrement: productQuantity,
-            },
-          },
+    const order = await prisma.$transaction(async (tx) => {
+      const products = await tx.product.findMany({
+        where: { id: { in: items.data.map((item) => item.productId) } },
+      });
+      const details = items.data.map((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product || !product.sizes.includes(item.size)) throw new Error('Un producto o talle ya no está disponible.');
+        return { ...item, price: product.price };
+      });
+      // Aggregate sizes and use a conditional write to protect concurrent orders.
+      for (const product of [...products].sort((a, b) => a.id.localeCompare(b.id))) {
+        const quantity = details.filter((item) => item.productId === product.id)
+          .reduce((sum, item) => sum + item.quantity, 0);
+        const stock = await tx.product.updateMany({
+          where: { id: product.id, inStock: { gte: quantity } },
+          data: { inStock: { decrement: quantity } },
         });
-      });
-
-      const updatedProducts = await Promise.all(updatedProductsPromises);
-
-      // Verificar valores negativos en las existencias
-      updatedProducts.forEach((product) => {
-        if (product.inStock < 0) {
-          throw new Error(`${product.title} no tiene inventario suficiente`);
-        }
-      });
-
-      // 2. Crear la orden - Encabezado - Detalles
-      const order = await tx.order.create({
+        if (stock.count !== 1) throw new Error('No hay inventario suficiente. Actualiza el carrito.');
+      }
+      const { country, ...orderAddress } = delivery.data;
+      return tx.order.create({
         data: {
-          userId: userId,
-          itemsInOrder: itemsInOrder,
-          subTotal: subTotal,
-          tax: tax,
-          total: total,
-          OrderItem: {
-            createMany: {
-              data: productIds.map((p) => ({
-                quantity: p.quantity,
-                size: p.size,
-                productId: p.productId,
-                price:
-                  products.find((product) => product.id === p.productId)
-                    ?.price ?? 0,
-              })),
-            },
-          },
+          userId: user.id,
+          ...calculateTotals(details),
+          itemsInOrder: details.reduce((sum, item) => sum + item.quantity, 0),
+          OrderItem: { create: details },
+          OrderAddress: { create: { ...orderAddress, countryId: country } },
         },
       });
-
-      // 3. Crear la dirección de la orden
-      const { country, ...restAddress } = address;
-      const orderAddressData = {
-        firstName: restAddress.firstName,
-        lastName: restAddress.lastName,
-        address: restAddress.address,
-        address2: restAddress.address2,
-        postalCode: restAddress.postalCode,
-        city: restAddress.city,
-        phone: restAddress.phone,
-        countryId: country,
-        orderId: order.id,
-      };
-
-      const orderAddress = await tx.orderAddress.create({
-        data: orderAddressData,
-      });
-
-      return {
-        updatedProducts: updatedProducts,
-        order: order,
-        orderAddress: orderAddress,
-      };
     });
-
-    return {
-      ok: true,
-      order: prismaTx.order,
-      prismaTx: prismaTx,
-    };
-  } catch (error: any) {
-    console.error("Error en la transacción:", error);
-    return {
-      ok: false,
-      message: error?.message || "Error al procesar la orden",
-    };
+    return { ok: true as const, order };
+  } catch (error) {
+    const message = error instanceof Error && [
+      'Un producto o talle ya no está disponible.',
+      'No hay inventario suficiente. Actualiza el carrito.',
+    ].includes(error.message) ? error.message : 'No se pudo crear la orden. Revisa la dirección y vuelve a intentar.';
+    return { ok: false as const, message };
   }
-};
-
+}

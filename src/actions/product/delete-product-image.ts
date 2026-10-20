@@ -1,55 +1,35 @@
-'use server'
+'use server';
 
-import { revalidate } from '@/app/(shop)/page';
 import prisma from '@/lib/prisma';
-import { v2 as cloudinary } from 'cloudinary';
+import { getCurrentUser } from '@/lib/authorization';
+import { getCloudinary, getLegacyPublicId } from '@/lib/cloudinary';
 import { revalidatePath } from 'next/cache';
-import { ProductImage } from '../../interfaces/product.interfase';
 
-cloudinary.config( process.env.CLOUDINARY_URL ?? '');
-
-
-export const deleteProductImage = async( imageId: number, imageUrl: string ) => {
-
-    if( !imageUrl.startsWith('http')) {
-        return {
-            ok: false,
-            error: 'No se pueden borrar imagenes de FS'
-        }
+export async function deleteProductImage(imageId: number, _imageUrl?: string) {
+  if ((await getCurrentUser())?.role !== 'admin') {
+    return { ok: false, message: 'Se requiere una cuenta administradora.' };
+  }
+  try {
+    const image = await prisma.productImage.findUnique({
+      where: { id: imageId }, include: { product: { select: { slug: true } } },
+    });
+    if (!image) return { ok: false, message: 'La imagen ya no existe.' };
+    if (image.url.startsWith('https://')) {
+      const client = getCloudinary();
+      const publicId = image.publicId ?? getLegacyPublicId(image.url, client.config().cloud_name!);
+      if (!publicId) return { ok: false, message: 'Esta imagen no pertenece a tu cuenta de Cloudinary.' };
+      const result = await client.uploader.destroy(publicId, { invalidate: true });
+      if (!['ok', 'not found'].includes(result.result)) throw new Error('Cloudinary delete failed');
     }
-
-    const imageName = imageUrl
-        .split('/')
-        .pop()
-        ?.split('.')[0] ?? '';
-
-        try {
-            
-            await cloudinary.uploader.destroy( imageName );
-            const deletedImage = await prisma.productImage.delete({
-                where: {
-                    id: imageId
-                },
-                select: {
-                    product: {
-                        select: {
-                            slug: true
-                        }
-                    }
-                }
-            })
-
-            // Revalidad los paths
-            revalidatePath(`/admin/products`)
-            revalidatePath(`/admin/product/$${ deletedImage.product.slug }`);
-            revalidatePath(`/product/$${ deletedImage.product.slug }`);
-
-        } catch (error) {
-            console.log(error);
-            return {
-                ok: false,
-                message: 'No se pudo eliminar la imagen'
-            }
-        }
-
-} 
+    // Local assets remain in public/; only the product association is removed.
+    await prisma.productImage.delete({ where: { id: imageId } });
+    revalidatePath('/');
+    revalidatePath('/gender/[gender]', 'page');
+    revalidatePath('/admin/products');
+    revalidatePath(`/admin/product/${image.product.slug}`);
+    revalidatePath(`/product/${image.product.slug}`);
+    return { ok: true };
+  } catch {
+    return { ok: false, message: 'No se pudo eliminar la imagen. Revisa Cloudinary y vuelve a intentar.' };
+  }
+}

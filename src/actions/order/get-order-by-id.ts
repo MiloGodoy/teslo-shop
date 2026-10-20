@@ -1,12 +1,12 @@
 'use server'
 
-import { auth } from "@/auth.config";
+import { getCurrentUser } from "@/lib/authorization";
 import prisma from "@/lib/prisma";
 
 export const getOrderById = async( id: string ) => {
-    const session = await auth();
+    const user = await getCurrentUser();
 
-    if(!session?.user) {
+    if(!user) {
       return {
         ok: false,
         message: 'Debe estar autenticado'
@@ -44,8 +44,8 @@ export const getOrderById = async( id: string ) => {
 
       if(! order ) throw `${id} no existe`;
 
-      if( session.user.role === 'user') {
-        if( session.user.id !== order.userId) {
+      if( user.role !== 'admin') {
+        if( user.id !== order.userId) {
             throw `${ id } no es de ese usuario`
         }
       }

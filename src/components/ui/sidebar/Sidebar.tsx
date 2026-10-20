@@ -56,14 +56,18 @@ export const Sidebar = () => {
         />
 
         {/* Input */}
-        <div className="relative mt-14">
+        <form action="/search" method="get" onSubmit={closeMenu} className="relative mt-14">
           <IoSearchOutline size={20} className="absolute top-2 left-2" />
           <input
-            type="text"
+            type="search"
+            name="q"
+            aria-label="Buscar productos desde el menú"
+            maxLength={120}
             placeholder="Buscar"
-            className="w-full bg-gray-50 rounded pl-10 py-1 pr-10 border-b-2 text-xl border-gray-200 focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 rounded pl-10 py-1 pr-20 border-b-2 text-xl border-gray-200 focus:outline-none focus:border-blue-500"
           />
-        </div>
+          <button type="submit" className="absolute right-2 top-1 text-blue-700">Buscar</button>
+        </form>
 
         {/* Menú */}
 
@@ -129,7 +133,7 @@ export const Sidebar = () => {
               onClick={() => closeMenu()}
               className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
             >
-              <IoTicketOutline size={30} />      
+              <IoTicketOutline size={30} />
               <span className="ml-3 text-xl">Ordenes</span>
             </Link>
 

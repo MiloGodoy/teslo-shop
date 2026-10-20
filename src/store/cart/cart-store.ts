@@ -1,3 +1,4 @@
+import { calculateTotals } from '@/utils/order-totals';
 import type { CartProduct } from "@/interfaces";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -25,14 +26,14 @@ interface State {
 export const useCartStore = create<State>()(
 
   persist(
-     
+
 
     (set, get) => ({
-        
+
         cart: [],
 
         //methods
-        
+
         getTotalItems: () => {
         const { cart } = get();
         return cart.reduce(( total, item) => total + item.quantity, 0 );
@@ -41,12 +42,7 @@ export const useCartStore = create<State>()(
         getSummaryInformation: () => {
             const { cart } = get();
 
-            const subTotal = cart.reduce(
-                (subTotal, product) => (product.quantity * product.price) + subTotal, 
-                0
-            );
-            const tax = subTotal * 0.1;
-            const total = subTotal + tax;
+            const { subTotal, tax, total } = calculateTotals(cart);
             const itemsInCart = cart.reduce(( total, item) => total + item.quantity, 0 );
 
             return {
@@ -83,7 +79,7 @@ export const useCartStore = create<State>()(
         updateProductQuantity: (product: CartProduct, quantity: number ) => {
 
             const { cart } = get();
-            
+
             const updatedCartProducts = cart.map( item => {
                 if( item.id === product.id && item.size === product.size ) {
                     return { ...item, quantity: quantity };

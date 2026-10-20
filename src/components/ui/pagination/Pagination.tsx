@@ -23,10 +23,12 @@ export const Pagination = ({ totalPages }: Props) => {
         redirect( pathname )
     }
 
-    const allPages = generatePaginationNumbers(currentPage, totalPages);
-    console.log(currentPage)
+    if (totalPages <= 1) return null;
 
-   
+    const allPages = generatePaginationNumbers(currentPage, totalPages);
+
+
+
     const createPageUrl = ( pageNumber: number | string ) => {
         const params = new URLSearchParams( searchParams )
 
@@ -63,9 +65,9 @@ export const Pagination = ({ totalPages }: Props) => {
 
        {
         allPages.map( (page, index) => (
-      
-            <li key={ page } className="page-item">
-                <Link 
+
+            <li key={`${page}-${index}`} className="page-item">
+                <Link
                     className={
                         clsx(
                             "page-link relative block py-1.5 px-3 border-0 outline-none transition-all duration-300 rounded     text-gray-800 hover:text-gray-800 hover:bg-gray-200 focus:shadow-none",
@@ -81,10 +83,10 @@ export const Pagination = ({ totalPages }: Props) => {
             </li>
         ))
        }
-      
-      
-     
-      
+
+
+
+
       <li className="page-item">
         <Link
           className="page-link relative block py-1.5 px-3 border-0 bg-transparent outline-none transition-all duration-300 rounded text-gray-800 hover:text-gray-800 hover:bg-gray-200 focus:shadow-none"
@@ -93,7 +95,7 @@ export const Pagination = ({ totalPages }: Props) => {
         <IoChevronForwardOutline size={30} />
          </Link>
       </li>
-    
+
     </ul>
   </nav>
 </div>

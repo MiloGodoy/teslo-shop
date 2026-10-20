@@ -1,4 +1,3 @@
-version: '3.8'
 
 
 services:
@@ -10,6 +9,11 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ./postgres:/var/lib/postgres/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5435:5432"
+
+volumes:
+  postgres-data:
+    name: ${POSTGRES_VOLUME_NAME:-teslo-shop-postgres-data}
+    external: ${POSTGRES_VOLUME_EXTERNAL:-false}

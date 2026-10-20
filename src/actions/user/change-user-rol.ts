@@ -1,13 +1,13 @@
 'use server'
 
-import { auth } from "@/auth.config"
+import { getCurrentUser } from "@/lib/authorization"
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export const changeUserRole = async( userId: string, role: string ) => {
-    const session = await auth();
+    const user = await getCurrentUser();
 
-    if( session?.user.role !== 'admin') {
+    if( user?.role !== 'admin') {
         return {
             ok: false,
             message: 'Solo los admin pueden cambiar roles'
@@ -27,7 +27,7 @@ export const changeUserRole = async( userId: string, role: string ) => {
             }
         })
 
-        revalidatePath('./admin/users');
+        revalidatePath('/admin/users');
 
         return {
             ok: true

@@ -1,5 +1,5 @@
 import { Title } from "@/components";
-import Image from "next/image";
+import { ProductImage } from "@/components/product/product-image/ProductImage";
 import { getOrderById } from "@/actions/order/get-order-by-id";
 import { redirect } from "next/navigation";
 import { currencyFormat } from "@/utils";
@@ -9,14 +9,12 @@ import OrderStatus from "@/components/orders/OrderStatus";
 
 
 interface Props {
-  params: {
-    id: string;
-  }
+  params: Promise<{ id: string; }>
 }
 
 export default async function OrdersIdPage({ params }: Props ) {
 
-  const { id } = params;
+  const { id } = await params;
 
   // Server Action
 
@@ -25,20 +23,20 @@ export default async function OrdersIdPage({ params }: Props ) {
   if( !ok ) {
     redirect('/')
   }
-  
+
   const address = order!.OrderAddress;
 
   return (
     <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
       <div className="flex flex-col w-[1000px]">
-        
+
         <Title title={`Orden #${ id.split('-').at(-1) }`} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
 
           {/* Carrito */}
           <div className="flex flex-col mt-5">
-            
+
            <OrderStatus isPaid={ order?.isPaid ?? false}/>
 
 
@@ -46,8 +44,8 @@ export default async function OrdersIdPage({ params }: Props ) {
           {
             order!.OrderItem.map( item => (
               <div key={ item.product.slug + '-' + item.size } className="flex">
-                <Image 
-                  src={ `/products/${ item.product.ProductImage[0].url }` }
+                <ProductImage
+                  src={item.product.ProductImage[0]?.url}
                   width={ 100 }
                   height={ 100 }
                   style={{
@@ -61,7 +59,7 @@ export default async function OrdersIdPage({ params }: Props ) {
                   <p>${item.product.title}</p>
                   <p>${item.price} x { item.quantity }</p>
                   <p className="font-bold">Subtotal: { currencyFormat( item.price * item.quantity )} </p>
-                  
+
                 </div>
               </div>
             ))
@@ -114,12 +112,12 @@ export default async function OrdersIdPage({ params }: Props ) {
               {order?.isPaid ? (
                 <OrderStatus isPaid={ order?.isPaid ?? false}/>
               ) : (
-                <PayPalButton 
+                <PayPalButton
                   amount={ order!.total }
                   orderId={ order!.id }
                 />
               )}
-              
+
             </div>
 
           </div>

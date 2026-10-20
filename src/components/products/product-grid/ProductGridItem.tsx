@@ -1,7 +1,7 @@
 'use client'
 
 import { Product } from "@/interfaces"
-import Image from "next/image"
+import { ProductImage } from "@/components/product/product-image/ProductImage"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -15,7 +15,7 @@ export const ProductGridItem = ({ product }:Props) => {
     const [displayImage, setDisplayImage] = useState(product.images[0] );
 
     const segundaImagen = () => {
-        setDisplayImage(product.images[1])
+        setDisplayImage(product.images[1] ?? product.images[0])
     }
 
     const primeraImagen = () => {
@@ -25,8 +25,8 @@ export const ProductGridItem = ({ product }:Props) => {
   return (
     <div className="rounded-md overflow-hidden fade-in">
         <Link href={ `/product/${ product.slug }` }>
-            <Image 
-                src={`/products/${ displayImage }`}
+            <ProductImage
+                src={displayImage}
                 alt={ product.title }
                 className="w-full object-cover rounded"
                 width={ 500 }
@@ -38,7 +38,7 @@ export const ProductGridItem = ({ product }:Props) => {
 
         <div className="p-4 flex flex-col">
             <Link
-                className="hover:text-blue-700" 
+                className="hover:text-blue-700"
                 href={ `/product/${ product.slug }` }
             >
                 { product.title }

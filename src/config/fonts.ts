@@ -1,8 +1,3 @@
-import { Inter, Montserrat_Alternates } from "next/font/google";
-
-export const inter = Inter({ subsets: ["latin"] });
-
-export const titleFont = Montserrat_Alternates({
-    subsets: ['latin'],
-    weight: ['500', '700']
-});
+// Fonts are installed locally so builds do not fetch Google Fonts.
+export const inter = { className: 'font-inter' };
+export const titleFont = { className: 'font-title' };

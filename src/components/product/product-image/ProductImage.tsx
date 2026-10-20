@@ -1,37 +1,12 @@
-import Image from 'next/image';
-
-interface Props {
-  src?: string;
-  alt: string;
-  className?: React.StyleHTMLAttributes<HTMLImageElement>['className'];
-  style?: React.StyleHTMLAttributes<HTMLImageElement>['style'];
-  width: number;
-  height: number;
-}
-
-export const ProductImage = ({
-  src,
-  alt,
-  className,
-  style,
-  width,
-  height
-}: Props) => {
-
-  const localSrc = ( src ) 
-    ? src.startsWith('http') // https://urlcompletodelaimagen.jpg
-      ? src
-      : `/products/${ src }`
-    : '/imgs/placeholder.jpg';
-
-  return (
-    <Image
-      src={ localSrc }
-      width={ width }
-      height={ height}
-      alt={ alt }
-      className={ className }
-      style={ style }
-    />
-  );
+'use client';
+import Image, { type ImageProps } from 'next/image';
+import { useState } from 'react';
+import { getProductImageSrc } from '@/utils/product-image';
+type Props = Omit<ImageProps, 'src'> & { src?: string | null };
+export const ProductImage = ({ src, alt, onError, ...props }: Props) => {
+  const resolved = getProductImageSrc(src);
+  const [failedSrc, setFailedSrc] = useState<string>();
+  return <Image {...props} alt={alt}
+    src={failedSrc === resolved ? '/imgs/placeholder.jpg' : resolved}
+    onError={(event) => { setFailedSrc(resolved); onError?.(event); }} />;
 };

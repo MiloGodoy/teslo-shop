@@ -15,13 +15,13 @@ type FormInputs = {
 
 export const RegisterForm = () => {
 
-    
+
 
     const [errorMessage, setErrorMessage] = useState('')
     const { register, handleSubmit, formState: {errors} } = useForm<FormInputs>();
 
     const onSubmit: SubmitHandler<FormInputs> = async(data) => {
-        
+
         setErrorMessage('')
         const { name, email, password } = data;
 
@@ -53,9 +53,9 @@ export const RegisterForm = () => {
                   {
                       'border-red-500': errors.name
                   }
-              )  
+              )
           }
-          type="text" 
+          type="text"
           autoFocus
           { ...register('name', { required: true}) }
         />
@@ -69,10 +69,10 @@ export const RegisterForm = () => {
                     {
                         'border-red-500': errors.email
                     }
-                )  
+                )
             }
-        
-          type="email" 
+
+          type="email"
           { ...register('email', { required: true, pattern: /^\S+@\S+$/i }) }
         />
 
@@ -85,16 +85,16 @@ export const RegisterForm = () => {
                 {
                     'border-red-500': errors.email
                 }
-            )  
+            )
           }
-          type="password" 
-          { ...register('password', { required: true, minLength: 6 }) }
+          type="password"
+          { ...register('password', { required: true, minLength: 8 }) }
         />
 
         <span className="text-red-500">{ errorMessage }</span>
 
         <button
-          
+
           className="btn-primary">
           Crear cuenta
         </button>
@@ -108,7 +108,7 @@ export const RegisterForm = () => {
         </div>
 
         <Link
-          href="/auth/login" 
+          href="/auth/login"
           className="btn-secondary text-center">
           Ingresar
         </Link>

@@ -1,6 +1,7 @@
+import { getProductImageSrc } from '@/utils/product-image';
 export const revalidate = 604800; // 7 días
 
-import { Metadata, ResolvingMetadata } from "next";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { titleFont } from "@/config/fonts";
@@ -10,24 +11,22 @@ import { AddToCart } from "./ui/AddToCart";
 
 
 interface Props {
-  params: {
-    slug: string;
-  }
+  params: Promise<{ slug: string; }>
 }
 
 export async function generateMetadata(
   { params }: Props,
-  parent: ResolvingMetadata
+
 ): Promise<Metadata> {
   // read route params
-  const slug = params.slug
- 
+  const { slug } = await params
+
   // fetch data
   const product = await getProductBySlug(slug);
- 
+
   // optionally access and extend (rather than replace) parent metadata
   //const previousImages = (await parent).openGraph?.images || []
- 
+
   return {
     title: product?.title ?? 'Producto no encontrado',
     description: product?.description ?? '',
@@ -35,16 +34,15 @@ export async function generateMetadata(
       title: product?.title ?? 'Producto no encontrado',
       description: product?.description ?? '',
       // images: [], // https://misitioweb.com/products/image.png
-      images: [`/products/${ product?.images[1] }`],
+      images: [getProductImageSrc(product?.images[0])],
     },
   }
 }
 
 export default async function ProductBySlugPage({ params }: Props) {
 
-  const { slug } = params;
+  const { slug } = await params;
   const product = await getProductBySlug(slug)
-  console.log(product)
 
   if ( !product ) {
     notFound();
@@ -53,12 +51,12 @@ export default async function ProductBySlugPage({ params }: Props) {
 
   return (
     <div className="mt-5 mb-20 grid grid-cols-1 md:grid-cols-3 gap-3">
-      
+
       {/* Slideshow */}
       <div className="col-span-1 md:col-span-2">
 
         {/* Mobile Slideshow */}
-        <ProductMobileSlideShow 
+        <ProductMobileSlideShow
           title={ product.title }
           images={ product.images }
           className="block md:hidden"
@@ -66,12 +64,12 @@ export default async function ProductBySlugPage({ params }: Props) {
 
 
         {/* Desktop Slideshow */}
-        <ProductSlideshow 
+        <ProductSlideshow
           title={ product.title }
           images={ product.images }
           className="hidden md:block"
         />
-      
+
       </div>
 
       {/* Detalles */}
@@ -91,7 +89,7 @@ export default async function ProductBySlugPage({ params }: Props) {
         <p className="font-light">
           { product.description }
         </p>
-      
+
       </div>
 
 

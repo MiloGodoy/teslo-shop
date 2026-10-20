@@ -68,3 +68,5 @@ body {
 .btn-danger {
   @apply bg-red-500 hover:bg-red-700 text-white py-2 px-4 transition-all;
 }
+.font-inter { font-family: 'Inter', sans-serif; }
+.font-title { font-family: 'Montserrat Alternates', sans-serif; }

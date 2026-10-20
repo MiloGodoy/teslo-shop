@@ -1,23 +1,9 @@
-'use server'
-
-import prisma from "@/lib/prisma";
-
-export const deleteUserAddress = async ( userId: string ) => {
-    
-    
-    try {
-    
-        const deleted = await prisma.userAddress.delete({
-            where: { userId }
-        })
-    
-        return { ok: true };
-    } catch (error) {
-        console.log(error)
-      return {
-        ok: false,
-        message: 'No se pudo eliminar la dirección'
-      }
-    }
-
+'use server';
+import prisma from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/authorization';
+export async function deleteUserAddress(userId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.id !== userId) return { ok: false, message: 'No puedes eliminar esta dirección.' };
+  await prisma.userAddress.deleteMany({ where: { userId: user.id } });
+  return { ok: true };
 }

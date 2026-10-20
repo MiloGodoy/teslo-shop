@@ -1,12 +1,12 @@
 'use server'
 
-import { auth } from "@/auth.config"
+import { getCurrentUser } from "@/lib/authorization"
 import prisma from "@/lib/prisma";
 
 export const getPaginatedOrders =  async() => {
-    const session = await auth();
+    const user = await getCurrentUser();
 
-    if( session?.user.role !== 'admin' ) {
+    if( user?.role !== 'admin' ) {
         return {
             ok: false,
             message: 'Debe estar autenticado'

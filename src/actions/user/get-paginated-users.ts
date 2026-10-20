@@ -1,12 +1,12 @@
 'use server'
 
-import { auth } from "@/auth.config"
+import { getCurrentUser } from "@/lib/authorization"
 import prisma from "@/lib/prisma";
 
 export const getPaginatedUsers = async() => {
-    const session = await auth();
+    const user = await getCurrentUser();
 
-    if(session?.user.role !== 'admin'){
+    if(user?.role !== 'admin'){
         return {
             ok: false,
             message: 'Debe ser user-admin'
@@ -14,6 +14,7 @@ export const getPaginatedUsers = async() => {
     }
 
     const users = await prisma.user.findMany({
+        select: { id: true, name: true, email: true, role: true, image: true },
         orderBy: {
             name: 'desc'
         }

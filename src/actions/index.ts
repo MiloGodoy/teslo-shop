@@ -8,7 +8,7 @@ export { getOrderById } from './order/get-order-by-id';
 export { getPaginatedOrders } from './order/get-paginated-orders';
 export { getOrdersByUser } from './order/get-orders-by-user';
 
-export { setTransactionId } from './payments/set-transaction-id';
+export { createPaypalOrder } from './payments/create-paypal-order';
 export { paypalCheckPayment } from './payments/paypal-check-payment';
 
 export { getCountries } from './country/get-countries';
