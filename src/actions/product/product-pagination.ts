@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { Gender, Prisma } from "@prisma/client";
+import { formatDatabaseError } from '@/lib/database-error';
 
 interface PaginationOptions {
     page?: number;
@@ -70,6 +71,7 @@ export const getPaginatedProductsWithImages = async({
         }
 
     } catch (error) {
+        console.error(formatDatabaseError('product.pagination', error));
         throw new Error('No se pudo cargar los productos');
     }
 }

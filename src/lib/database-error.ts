@@ -1,3 +1,5 @@
+import { getDatabaseUrl } from './database-url';
+
 function redact(message: string): string {
   let result = message;
   for (const value of [process.env.DATABASE_URL, process.env.DIRECT_URL]) {
@@ -29,13 +31,15 @@ function describe(error: unknown, depth = 0): Record<string, unknown> {
 export function formatDatabaseError(operation: string, error: unknown): string {
   let connection: Record<string, unknown> = { configured: !!process.env.DATABASE_URL };
   try {
-    const url = new URL(process.env.DATABASE_URL!);
+    const effectiveUrl = getDatabaseUrl()!;
+    const url = new URL(effectiveUrl);
     connection = {
       configured: true,
       port: url.port || '5432',
       supabasePooler: url.hostname.endsWith('.pooler.supabase.com'),
       pgbouncer: url.searchParams.get('pgbouncer') === 'true',
       sslRequired: url.searchParams.get('sslmode') === 'require',
+      compatibilityApplied: effectiveUrl !== process.env.DATABASE_URL,
     };
   } catch { /* Do not print a malformed URL: it can contain credentials. */ }
   // JSON escapes line breaks so Vercel receives the whole error as one log entry.
