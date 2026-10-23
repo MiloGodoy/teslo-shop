@@ -4,18 +4,20 @@ import { AddressForm } from './ui/AddressForm';
 import { getCountries } from '@/actions';
 import { auth } from '@/auth.config';
 import { getUserAddress } from '@/actions/address/get-user-address';
+import { redirect } from 'next/navigation';
+
+// A private checkout page must not query the database during prerendering.
+export const dynamic = 'force-dynamic';
 
 
 export default async function AddressPage() {
-  const countries = await getCountries();
-
   const session = await auth();
   
   if( !session?.user ){
-    return(
-      <h3 className='text-5xl'>500 - No hay sesión de usuario</h3>
-    )
+    redirect('/auth/login?redirectTo=/checkout/address');
   }
+
+  const countries = await getCountries();
 
   const userAddress = await getUserAddress(session.user.id) ?? undefined;
   

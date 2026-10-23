@@ -2,6 +2,7 @@
 'use server'
 
 import prisma from "@/lib/prisma";
+import { formatDatabaseError } from '@/lib/database-error';
 //import { sleep } from "@/utils";
 
 export const getStockBySlug = async( slug: string ): Promise<number> => {
@@ -19,7 +20,7 @@ export const getStockBySlug = async( slug: string ): Promise<number> => {
         
         
     } catch (error) {
-        console.log(error);
+        console.error(formatDatabaseError('product.getStock', error));
         return 0;
     }
 }

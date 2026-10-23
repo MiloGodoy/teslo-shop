@@ -1,6 +1,7 @@
 'use server'
 
 import prisma from "@/lib/prisma";
+import { formatDatabaseError } from '@/lib/database-error';
 
 export const getProductBySlug = async( slug: string ) => {
 
@@ -23,7 +24,7 @@ export const getProductBySlug = async( slug: string ) => {
         }
 
     } catch (error) {
-        console.log(error);
+        console.error(formatDatabaseError('product.getBySlug', error));
         throw new Error('Error al obtener producto por slug');
     }
 }
